@@ -35,23 +35,48 @@ int main(int argc, char *argv[]) {
     char buf[BUF_SIZE];
 
     /* Check argument count */
-    if (argc != 6) {
-        std::cerr << "Usage: Socks5-Client socks_host socks_port server_host server_port test_string" << std::endl;
+    if (argc != 8) {
+        std::cerr << "Usage: Socks5-Client socks_host socks_port server_host server_port data_count session_number time"
+                  << std::endl;
+        std::cerr << "Example: Socks5-Client 127.0.0.1 8080 127.0.0.1 8081 500 10 60" << std::endl;
         exit(EXIT_FAILURE);
     }
 
     char *socks_host = argv[1];
-    uint16_t socks_port = htons(atoi(argv[2]));
+    uint16_t socks_port = htons(std::atoi(argv[2]));
     char *server_host = argv[3];
-    uint16_t server_port = htons(atoi(argv[4]));
-    char *test_string = argv[5];
-    int kq, nev, i;
+    uint16_t server_port = htons(std::atoi(argv[4]));
+    uint16_t data_count = std::atoi(argv[5]);
+    std::string test_string = std::string(data_count, 'a');
+    uint16_t session_number = std::atoi(argv[6]);
+    uint16_t time = std::atoi(argv[7]);
+    int kq, nev;
+    unsigned long long k = 0;
 
     /* Create a new kernel event queue */
-    if ((kq = kqueue()) == -1)
+    if ((kq = kqueue()) == -1) {
         std::cerr << "Failed to create new kernel event queue: " << std::strerror(errno) << std::endl;
+    }
 
-    EV_SET(&ch_list, 1, EVFILT_TIMER, EV_ADD, 0, 5, 0);
+    for (int i = 0; i < session_number; i++) {
+        int fd;
+        if ((fd = connect(socks_host, socks_port)) == -1) {
+            std::cerr << "Failed to connect to server: " << std::strerror(errno) << std::endl;
+            exit(EXIT_FAILURE);
+        }
+        if ((send(fd, "\05\01\00", 3, 0)) == -1) {
+            std::cerr << "Failed to send connection request: " << std::strerror(errno) << std::endl;
+            return -1;
+        }
+        auto *data = new struct udata;
+        data->s = CONNECTION;
+        EV_SET(&ch_list, fd, EVFILT_READ, EV_ADD, 0, 0, data);
+        if (kevent(kq, &ch_list, 1, NULL, 0, NULL) == -1) {
+            std::cerr << "Failed to kevent: " << std::strerror(errno) << std::endl;
+        }
+    }
+
+    EV_SET(&ch_list, 1, EVFILT_TIMER, EV_ADD, 0, time * 1000, 0);
     if (kevent(kq, &ch_list, 1, NULL, 0, NULL) == -1) {
         std::cerr << "Failed to kevent: " << std::strerror(errno) << std::endl;
     }
@@ -64,7 +89,7 @@ int main(int argc, char *argv[]) {
         if (nev == -1) {
             std::cerr << "Failed to kevent: " << std::strerror(errno) << std::endl;
         } else if (nev > 0) {
-            for (i = 0; i < nev; i++) {
+            for (int i = 0; i < nev; i++) {
                 if (ev_list[i].flags & EV_EOF) {
                     std::cerr << "Socket closed by server" << std::endl;
                     close(ev_list[i].ident);
@@ -72,21 +97,8 @@ int main(int argc, char *argv[]) {
                     std::cerr << "EV_ERROR: " << strerror(ev_list[i].data) << std::endl;
                     exit(EXIT_FAILURE);
                 } else if (ev_list[i].filter == EVFILT_TIMER) {
-                    int fd;
-                    if ((fd = connect(socks_host, socks_port)) == -1) {
-                        std::cerr << "Failed to connect to server: " << std::strerror(errno) << std::endl;
-                        exit(EXIT_FAILURE);
-                    }
-                    if ((send(fd, "\05\01\00", 3, 0)) == -1) {
-                        std::cerr << "Failed to send connection request: " << std::strerror(errno) << std::endl;
-                        return -1;
-                    }
-                    auto *data = new struct udata;
-                    data->s = CONNECTION;
-                    EV_SET(&ch_list, fd, EVFILT_READ, EV_ADD, 0, 0, data);
-                    if (kevent(kq, &ch_list, 1, NULL, 0, NULL) == -1) {
-                        std::cerr << "Failed to kevent: " << std::strerror(errno) << std::endl;
-                    }
+                    std::cout << "Число обработанных запросов: " << k << std::endl;
+                    exit(0);
                 } else if (ev_list[i].filter == EVFILT_READ) {
                     int fd = ev_list[i].ident;
                     auto *data = reinterpret_cast<struct udata *>(ev_list[i].udata);
@@ -143,7 +155,7 @@ int main(int argc, char *argv[]) {
                                 break;
                             }
 
-                            if ((send(fd, test_string, strlen(test_string), 0)) == -1) {
+                            if ((send(fd, test_string.c_str(), test_string.length(), 0)) == -1) {
                                 std::cerr << "Failed to send test string: " << std::strerror(errno) << std::endl;
                                 break;
                             }
@@ -155,7 +167,11 @@ int main(int argc, char *argv[]) {
                             break;
                         }
                         case END: {
+                            ++k;
                             while (recv(fd, buf, sizeof(buf), 0) > 0) {
+                            }
+                            if ((send(fd, test_string.c_str(), test_string.length(), 0)) == -1) {
+                                std::cerr << "Failed to send test string: " << std::strerror(errno) << std::endl;
                             }
                         }
                     }
