@@ -35,8 +35,8 @@ int main(int argc, char *argv[]) {
     char buf[BUF_SIZE];
 
     /* Check argument count */
-    if (argc != 5) {
-        std::cerr << "Usage: Socks5-Client socks_host socks_port server_host server_port" << std::endl;
+    if (argc != 6) {
+        std::cerr << "Usage: Socks5-Client socks_host socks_port server_host server_port test_string" << std::endl;
         exit(EXIT_FAILURE);
     }
 
@@ -44,6 +44,7 @@ int main(int argc, char *argv[]) {
     uint16_t socks_port = htons(atoi(argv[2]));
     char *server_host = argv[3];
     uint16_t server_port = htons(atoi(argv[4]));
+    char *test_string = argv[5];
     int kq, nev, i;
 
     /* Create a new kernel event queue */
@@ -131,7 +132,6 @@ int main(int argc, char *argv[]) {
                         }
                         case COMMAND: {
                             uint8_t command_answer[10];
-                            char test_word[3] = {'k', 'e', 'k'};
 
                             if ((recv(fd, command_answer, sizeof(command_answer), 0)) == -1) {
                                 std::cerr << "Failed to read command response: " << std::strerror(errno) << std::endl;
@@ -143,8 +143,8 @@ int main(int argc, char *argv[]) {
                                 break;
                             }
 
-                            if ((send(fd, test_word, 3, 0)) == -1) {
-                                std::cerr << "Failed to send test word: " << std::strerror(errno) << std::endl;
+                            if ((send(fd, test_string, strlen(test_string), 0)) == -1) {
+                                std::cerr << "Failed to send test string: " << std::strerror(errno) << std::endl;
                                 break;
                             }
                             data->s = END;
@@ -155,12 +155,8 @@ int main(int argc, char *argv[]) {
                             break;
                         }
                         case END: {
-                            char test_word[4];
-                            if ((recv(fd, test_word, sizeof(test_word), 0)) == -1) {
-                                std::cerr << "Failed to read test word: " << std::strerror(errno) << std::endl;
-                                break;
+                            while (recv(fd, buf, sizeof(buf), 0) > 0) {
                             }
-                            std::cout << "Test word: " << test_word << std::endl;
                         }
                     }
                 }
