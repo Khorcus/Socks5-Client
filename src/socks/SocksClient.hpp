@@ -9,9 +9,13 @@
 
 class SocksClient {
 public:
+    SocksClient();
+
     SocksClient(const char *socks_host, uint16_t socks_port, const char *server_host, uint16_t server_port);
 
     ~SocksClient();
+
+    void init(const char *socks_host, uint16_t socks_port, const char *server_host, uint16_t server_port);
 
     void start_test(uint16_t session_count, const std::string &test_string, uint16_t time);
 
@@ -24,7 +28,7 @@ private:
     uint16_t server_port;
     unsigned long long ping_count;
     KQueue k_queue;
-    ClientSocket **socket_pool;
+    std::vector<ClientSocket> socket_pool;
 };
 
 

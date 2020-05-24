@@ -2,13 +2,12 @@
 #include <cstdlib>
 #include <iostream>
 #include <thread>
+#include <vector>
 #include "socks/SocksClient.hpp"
 
 #define BUF_SIZE 1024
 
 int main(int argc, char *argv[]) {
-    std::thread *thread_pool;
-
     if (argc != 9) {
         std::cerr
                 << "Usage: Socks5-Client socks_host socks_port server_host server_port data_count session_count time thread_count"
@@ -26,7 +25,32 @@ int main(int argc, char *argv[]) {
     uint16_t session_count = std::atoi(argv[6]);
     uint16_t time = std::atoi(argv[7]) * 1000;
     uint16_t thread_count = std::atoi(argv[8]);
+    unsigned long long k = 0;
+    auto thread_pool = std::vector<std::thread>();
+    thread_pool.reserve(thread_count);
+    auto client_pool = std::vector<SocksClient>(thread_count);
 
-    SocksClient client = SocksClient(socks_host, socks_port, server_host, server_port);
-    client.start_test(session_count, test_string, time);
+    uint16_t sessions_per_thread = session_count / thread_count;
+    uint16_t unallocated_sessions = session_count % thread_count;
+
+    if (unallocated_sessions > 0) {
+        sessions_per_thread++;
+    }
+
+    for (uint16_t i = 0; i < thread_count; ++i) {
+        if (unallocated_sessions == 0) {
+            sessions_per_thread--;
+        }
+        client_pool[i].init(socks_host, socks_port, server_host, server_port);
+        std::thread kthread(&SocksClient::start_test, &client_pool[i], sessions_per_thread, test_string, time);
+        thread_pool.push_back(std::move(kthread));
+    }
+    for (uint16_t i = 0; i < thread_count; ++i) {
+        thread_pool[i].join();
+    }
+    for (uint16_t i = 0; i < thread_count; ++i) {
+        k += client_pool[i].get_ping_count();
+    }
+    std::cout << "Ping count: " << k << std::endl;
+
 }
