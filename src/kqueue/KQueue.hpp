@@ -3,6 +3,7 @@
 
 
 #include <sys/event.h>
+#include <vector>
 #include "Actions.hpp"
 
 
@@ -10,7 +11,6 @@ class KQueue {
 public:
     KQueue();
     explicit KQueue(int ev_number);
-    ~KQueue();
     bool init();
     bool add_read_event(int fd, void* data);
     bool add_timer_event(uint16_t time);
@@ -21,7 +21,7 @@ private:
     int kq;
     int ev_number;
     struct kevent ch_list;
-    struct kevent *ev_list;
+    std::vector<struct kevent> ev_list;
 };
 
 

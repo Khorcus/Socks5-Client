@@ -60,12 +60,20 @@ int ClientSocket::receive(void *data, size_t size) {
     return recv(sfd, data, size, 0);
 }
 
-void ClientSocket::receive_all() {
+void ClientSocket::discard_all() {
     char buf[BUF_SIZE];
     while (recv(sfd, buf, sizeof(buf), 0) > 0) {
     }
 }
 
-int ClientSocket::get_fd() {
+int ClientSocket::get_fd() const {
     return sfd;
+}
+
+status ClientSocket::get_s() const {
+    return s;
+}
+
+void ClientSocket::set_s(status s) {
+    this->s = s;
 }

@@ -9,13 +9,13 @@
 
 class SocksActions : public Actions {
 public:
-    SocksActions(const char *server_host, uint16_t server_port, std::string test_string, const KQueue& k_queue);
+    SocksActions(const char *server_host, uint16_t server_port, std::string test_string, KQueue  k_queue);
 
     ~SocksActions();
 
     void on_read_event(int fd, void *udata) override;
 
-    unsigned long long get_ping_count();
+    unsigned long long get_ping_count() const;
 
 private:
     unsigned long long ping_count;

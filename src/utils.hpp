@@ -7,8 +7,4 @@ enum status {
     END = 3
 };
 
-struct udata {
-    status s;
-};
-
 #endif //SOCKS5_CLIENT_UTILS_HPP

@@ -51,9 +51,8 @@ void SocksClient::start_test(uint16_t session_count, const std::string &test_str
         if (!socket_pool[i].send("\05\01\00", 3)) {
             return;
         }
-        auto *data = new struct udata;
-        data->s = CONNECTION;
-        k_queue.add_read_event(socket_pool[i].get_fd(), data);
+        socket_pool[i].set_s(CONNECTION);
+        k_queue.add_read_event(socket_pool[i].get_fd(), &socket_pool[i]);
     }
 
     k_queue.add_timer_event(time);

@@ -4,6 +4,7 @@
 
 #include <cstdint>
 #include <string>
+#include "../utils.hpp"
 
 
 class ClientSocket {
@@ -14,11 +15,14 @@ public:
     bool make_non_blocking();
     int send(const void *data, size_t size);
     int receive(void *data, size_t size);
-    void receive_all();
-    int get_fd();
+    void discard_all();
+    int get_fd() const;
+    status get_s() const;
+    void set_s(status s);
 
 private:
     int sfd;
+    status s;
 };
 
 

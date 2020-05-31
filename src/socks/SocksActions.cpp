@@ -1,4 +1,5 @@
 #include "SocksActions.hpp"
+#include "../socket/ClientSocket.hpp"
 #include <netinet/in.h>
 #include <iostream>
 #include <utility>
@@ -10,25 +11,25 @@ SocksActions::SocksActions(
         const char *server_host,
         uint16_t server_port,
         std::string test_string,
-        const KQueue &k_queue) :
+        KQueue k_queue) :
         server_host(server_host),
         server_port(server_port),
         test_string(std::move(test_string)),
         ping_count(0),
-        k_queue(k_queue) {}
+        k_queue(std::move(k_queue)) {}
 
 SocksActions::~SocksActions() = default;
 
 
 void SocksActions::on_read_event(int fd, void *udata) {
-    auto *data = reinterpret_cast<struct udata *>(udata);
-    switch (data->s) {
+    auto *data = reinterpret_cast<ClientSocket *>(udata);
+    switch (data->get_s()) {
         case CONNECTION: {
             uint8_t connection_answer[2];
             uint8_t command_request[10] = {0x05, 0x01, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
             struct in_addr server_addr{};
 
-            if ((recv(fd, connection_answer, sizeof(connection_answer), 0)) == -1) {
+            if (data->receive(connection_answer, sizeof(connection_answer)) == -1) {
                 std::cerr << "Failed to read connection response: " << std::strerror(errno) << std::endl;
                 break;
             }
@@ -54,7 +55,7 @@ void SocksActions::on_read_event(int fd, void *udata) {
                 std::cerr << "Failed to send command request: " << std::strerror(errno) << std::endl;
                 break;
             }
-            data->s = COMMAND;
+            data->set_s(COMMAND);
             k_queue.add_read_event(fd, data);
             break;
         }
@@ -75,7 +76,7 @@ void SocksActions::on_read_event(int fd, void *udata) {
                 std::cerr << "Failed to send test string: " << std::strerror(errno) << std::endl;
                 break;
             }
-            data->s = END;
+            data->set_s(END);
             k_queue.add_read_event(fd, data);
             break;
         }
@@ -91,7 +92,7 @@ void SocksActions::on_read_event(int fd, void *udata) {
     }
 }
 
-unsigned long long SocksActions::get_ping_count() {
+unsigned long long SocksActions::get_ping_count() const {
     return ping_count;
 }
 

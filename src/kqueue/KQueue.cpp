@@ -7,12 +7,8 @@ KQueue::KQueue() : KQueue(32) {}
 KQueue::KQueue(int ev_number)
         : kq(), ev_number(ev_number), ch_list(), ev_list() {}
 
-KQueue::~KQueue() {
-    delete[] ev_list;
-}
-
 bool KQueue::init() {
-    ev_list = new struct kevent[ev_number];
+    ev_list.reserve(ev_number);
     if ((kq = kqueue()) == -1) {
         std::cerr << "Failed to create new kernel event queue: " << std::strerror(errno) << std::endl;
         return false;
@@ -41,7 +37,7 @@ bool KQueue::add_timer_event(uint16_t time) {
 void KQueue::start_loop(Actions *actions) {
     int nev;
     for (;;) {
-        if ((nev = kevent(kq, &ch_list, 1, ev_list, ev_number, NULL)) == -1) {
+        if ((nev = kevent(kq, &ch_list, 1, ev_list.data(), ev_number, NULL)) == -1) {
             std::cerr << "Failed to kevent: " << std::strerror(errno) << std::endl;
         } else if (nev > 0) {
             for (int i = 0; i < nev; i++) {
