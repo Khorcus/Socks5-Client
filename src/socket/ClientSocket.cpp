@@ -3,6 +3,7 @@
 #include <iostream>
 #include <sys/socket.h>
 #include <fcntl.h>
+#include <zconf.h>
 #include "ClientSocket.hpp"
 
 #define BUF_SIZE 1024
@@ -12,6 +13,7 @@ ClientSocket::ClientSocket()
 
 ClientSocket::~ClientSocket() {
     shutdown(sfd, SHUT_RDWR);
+    close(sfd);
 }
 
 bool ClientSocket::connect(const char *host, uint16_t port) {
