@@ -51,7 +51,7 @@ void SocksActions::on_read_event(int fd, void *udata) {
             memcpy(command_request + 4, &server_addr.s_addr, 4);
             memcpy(command_request + 8, &server_port, 2);
 
-            if ((send(fd, command_request, sizeof(command_request), 0)) == -1) {
+            if (data->send(command_request, sizeof(command_request)) == -1) {
                 std::cerr << "Failed to send command request: " << std::strerror(errno) << std::endl;
                 break;
             }
@@ -62,7 +62,7 @@ void SocksActions::on_read_event(int fd, void *udata) {
         case COMMAND: {
             uint8_t command_answer[10];
 
-            if ((recv(fd, command_answer, sizeof(command_answer), 0)) == -1) {
+            if (data->receive(command_answer, sizeof(command_answer)) == -1) {
                 std::cerr << "Failed to read command response: " << std::strerror(errno) << std::endl;
                 break;
             }
@@ -72,7 +72,7 @@ void SocksActions::on_read_event(int fd, void *udata) {
                 break;
             }
 
-            if ((send(fd, test_string.c_str(), test_string.length(), 0)) == -1) {
+            if (data->send(test_string.c_str(), test_string.length()) == -1) {
                 std::cerr << "Failed to send test string: " << std::strerror(errno) << std::endl;
                 break;
             }
@@ -82,10 +82,8 @@ void SocksActions::on_read_event(int fd, void *udata) {
         }
         case END: {
             ++ping_count;
-            char buf[BUF_SIZE];
-            while (recv(fd, buf, sizeof(buf), 0) > 0) {
-            }
-            if ((send(fd, test_string.c_str(), test_string.length(), 0)) == -1) {
+            data->discard_all();
+            if (data->send(test_string.c_str(), test_string.length()) == -1) {
                 std::cerr << "Failed to send test string: " << std::strerror(errno) << std::endl;
             }
         }
