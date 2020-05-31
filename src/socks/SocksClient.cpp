@@ -25,10 +25,6 @@ SocksClient::SocksClient(const char *socks_host, uint16_t socks_port, const char
         k_queue(EV_NUMBER),
         socket_pool() {}
 
-SocksClient::~SocksClient() {
-    k_queue.~KQueue();
-}
-
 void SocksClient::init(const char *socks_host, uint16_t socks_port, const char *server_host, uint16_t server_port) {
     this->socks_host = socks_host;
     this->socks_port = socks_port;
