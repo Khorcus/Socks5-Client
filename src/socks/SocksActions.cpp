@@ -46,7 +46,7 @@ void SocksActions::on_read_event(int fd, void *udata) {
 
             if (inet_aton(server_host, &server_addr) == 0) {
                 std::cerr << "Invalid server host" << std::endl;
-                exit(EXIT_FAILURE);
+                return;
             }
             memcpy(command_request + 4, &server_addr.s_addr, 4);
             memcpy(command_request + 8, &server_port, 2);
