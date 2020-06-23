@@ -9,7 +9,7 @@
 #define BUF_SIZE 1024
 
 ClientSocket::ClientSocket()
-        : sfd() {}
+        : sfd(), s() {}
 
 ClientSocket::~ClientSocket() {
     shutdown(sfd, SHUT_RDWR);

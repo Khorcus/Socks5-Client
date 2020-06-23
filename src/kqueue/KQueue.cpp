@@ -19,7 +19,7 @@ bool KQueue::init() {
 bool KQueue::add_read_event(int fd, void *data) {
     EV_SET(&ch_list, fd, EVFILT_READ, EV_ADD, 0, 0, data);
     if (kevent(kq, &ch_list, 1, NULL, 0, NULL) == -1) {
-        std::cerr << "Failed to kevent: " << std::strerror(errno) << std::endl;
+        std::cerr << "Failed to kevent in add_read_event: " << std::strerror(errno) << std::endl;
         return false;
     }
     return true;
@@ -28,7 +28,7 @@ bool KQueue::add_read_event(int fd, void *data) {
 bool KQueue::add_timer_event(uint16_t time) {
     EV_SET(&ch_list, 1, EVFILT_TIMER, EV_ADD, 0, time, 0);
     if (kevent(kq, &ch_list, 1, NULL, 0, NULL) == -1) {
-        std::cerr << "Failed to kevent: " << std::strerror(errno) << std::endl;
+        std::cerr << "Failed to kevent in add_timer_event: " << std::strerror(errno) << std::endl;
         return false;
     }
     return true;
@@ -58,5 +58,3 @@ void KQueue::start_loop(Actions *actions) {
         }
     }
 }
-
-

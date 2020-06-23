@@ -37,6 +37,7 @@ void SocksClient::start_test(uint16_t session_count, const std::string &test_str
     if (!k_queue.init()) {
         return;
     }
+    k_queue.add_timer_event(time);
     for (int i = 0; i < session_count; i++) {
         if (!socket_pool[i].connect(socks_host, socks_port)) {
             return;
@@ -51,11 +52,9 @@ void SocksClient::start_test(uint16_t session_count, const std::string &test_str
         k_queue.add_read_event(socket_pool[i].get_fd(), &socket_pool[i]);
     }
 
-    k_queue.add_timer_event(time);
-
     SocksActions actions = SocksActions(server_host, server_port, test_string, k_queue);
     k_queue.start_loop(&actions);
-    std::cout << actions.get_ping_count() << std::endl;
+    ping_count = actions.get_ping_count();
 }
 
 unsigned long long SocksClient::get_ping_count() {

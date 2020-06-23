@@ -10,11 +10,16 @@
 class KQueue {
 public:
     KQueue();
+
     explicit KQueue(int ev_number);
+
     bool init();
-    bool add_read_event(int fd, void* data);
+
+    bool add_read_event(int fd, void *data);
+
     bool add_timer_event(uint16_t time);
-    void start_loop(Actions* actions);
+
+    void start_loop(Actions *actions);
 
 
 private:

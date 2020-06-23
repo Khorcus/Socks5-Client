@@ -4,7 +4,7 @@
 
 class Actions {
 public:
-    virtual void on_read_event(int fd, void* udata) = 0;
+    virtual void on_read_event(int fd, void *udata) = 0;
 };
 
 

@@ -9,9 +9,7 @@
 
 class SocksActions : public Actions {
 public:
-    SocksActions(const char *server_host, uint16_t server_port, std::string test_string, KQueue  k_queue);
-
-    ~SocksActions();
+    SocksActions(const char *server_host, uint16_t server_port, std::string test_string, KQueue k_queue);
 
     void on_read_event(int fd, void *udata) override;
 
