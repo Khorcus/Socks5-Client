@@ -16,6 +16,15 @@ ClientSocket::~ClientSocket() {
     close(sfd);
 }
 
+ClientSocket::ClientSocket(ClientSocket &&src) noexcept : sfd(-1), s() {
+    src.swap(*this);
+}
+
+ClientSocket &ClientSocket::operator=(ClientSocket &&src) noexcept {
+    src.swap(*this);
+    return *this;
+}
+
 bool ClientSocket::connect(const char *host, uint16_t port) {
     struct sockaddr_in addr{};
     struct hostent *hp;
@@ -78,4 +87,9 @@ status ClientSocket::get_s() const {
 
 void ClientSocket::set_s(status s) {
     this->s = s;
+}
+
+void ClientSocket::swap(ClientSocket &other) {
+    std::swap(sfd, other.sfd);
+    std::swap(s, other.s);
 }

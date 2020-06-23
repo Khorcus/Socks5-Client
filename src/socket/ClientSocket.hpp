@@ -11,6 +11,14 @@ class ClientSocket {
 public:
     ClientSocket();
 
+    ClientSocket(const ClientSocket &) = delete;
+
+    ClientSocket(ClientSocket &&src) noexcept;
+
+    ClientSocket &operator=(const ClientSocket &) = delete;
+
+    ClientSocket &operator=(ClientSocket &&src) noexcept;
+
     ~ClientSocket();
 
     bool connect(const char *host, uint16_t port);
@@ -28,6 +36,8 @@ public:
     status get_s() const;
 
     void set_s(status s);
+
+    void swap(ClientSocket &other);
 
 private:
     int sfd;
