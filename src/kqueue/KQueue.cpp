@@ -25,6 +25,15 @@ bool KQueue::add_read_event(int fd, void *data) {
     return true;
 }
 
+bool KQueue::add_write_event(int fd, void *data) {
+    EV_SET(&ch_list, fd, EVFILT_WRITE, EV_ADD, 0, 0, data);
+    if (kevent(kq, &ch_list, 1, NULL, 0, NULL) == -1) {
+        std::cerr << "Failed to kevent in add_write_event: " << std::strerror(errno) << std::endl;
+        return false;
+    }
+    return true;
+}
+
 bool KQueue::add_timer_event(uint16_t time) {
     EV_SET(&ch_list, 1, EVFILT_TIMER, EV_ADD, 0, time, 0);
     if (kevent(kq, &ch_list, 1, NULL, 0, NULL) == -1) {
@@ -52,6 +61,9 @@ void KQueue::start_loop(Actions *actions) {
                 } else if (ev_list[i].filter == EVFILT_READ) {
                     int fd = ev_list[i].ident;
                     actions->on_read_event(fd, ev_list[i].udata);
+                } else if (ev_list[i].filter == EVFILT_WRITE) {
+                    int fd = ev_list[i].ident;
+                    actions->on_write_event(fd, ev_list[i].udata);
                 }
             }
         }

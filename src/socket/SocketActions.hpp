@@ -1,4 +1,3 @@
-
 #ifndef SOCKS5_CLIENT_SOCKS_ACTIONS_HPP
 #define SOCKS5_CLIENT_SOCKS_ACTIONS_HPP
 
@@ -8,13 +7,11 @@
 #include "../utils.hpp"
 #include "../kqueue/KQueue.hpp"
 
-class SocksActions : public Actions {
+class SocketActions : public Actions {
 public:
-    SocksActions(const char *server_host, uint16_t server_port, std::string test_string, KQueue k_queue);
+    SocketActions(const char *server_host, uint16_t server_port, std::string test_string, KQueue  k_queue);
 
     void on_read_event(int fd, void *udata) override;
-
-    void on_write_event(int fd, void *udata) override;
 
     unsigned long long get_ping_count() const;
 

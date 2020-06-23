@@ -7,6 +7,7 @@
 #include "ClientSocket.hpp"
 
 #define BUF_SIZE 1024
+#define EV_NUMBER 32
 
 ClientSocket::ClientSocket()
         : sfd(), s() {}
@@ -64,7 +65,31 @@ bool ClientSocket::make_non_blocking() {
 }
 
 int ClientSocket::send(const void *data, size_t size) {
-    return ::send(sfd, data, size, 0);
+//    int sent_size = 0;
+//    const char *char_data = static_cast<const char *>(data);
+//    while (sent_size != size) {
+//        int current_sent_size = 0;
+//        if ((current_sent_size = ::send(sfd, char_data + sent_size, size - sent_size, 0)) == -1) {
+//            return -1;
+//        }
+//        sent_size += current_sent_size;
+//    }
+//    return sent_size;
+    const char *char_data = static_cast<const char *>(data);
+    if (send_data.empty()) {
+        int sent_size = 0;
+        if ((sent_size = ::send(sfd, char_data + sent_size, size - sent_size, 0)) == -1) {
+            return -1;
+        }
+        if (sent_size != size) {
+            send_data.append(char_data + sent_size);
+            k_queue.add_write_event(sfd, this);
+        }
+        return sent_size;
+    } else {
+        send_data.append(char_data);
+        return 0;
+    }
 }
 
 int ClientSocket::receive(void *data, size_t size) {
@@ -88,6 +113,11 @@ status ClientSocket::get_s() const {
 void ClientSocket::set_s(status s) {
     this->s = s;
 }
+
+void ClientSocket::set_k_queue(const KQueue &k_queue) {
+    this->k_queue = k_queue;
+}
+
 
 void ClientSocket::swap(ClientSocket &other) {
     std::swap(sfd, other.sfd);

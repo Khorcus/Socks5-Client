@@ -1,4 +1,4 @@
-#include "SocksActions.hpp"
+#include "SocketActions.hpp"
 #include "../socket/ClientSocket.hpp"
 #include <netinet/in.h>
 #include <iostream>
@@ -7,7 +7,7 @@
 
 #define BUF_SIZE 1024
 
-SocksActions::SocksActions(
+SocketActions::SocketActions(
         const char *server_host,
         uint16_t server_port,
         std::string test_string,
@@ -18,15 +18,16 @@ SocksActions::SocksActions(
         ping_count(0),
         k_queue(std::move(k_queue)) {}
 
-void SocksActions::on_read_event(int fd, void *udata) {
-    auto *client_socket = reinterpret_cast<ClientSocket *>(udata);
-    switch (client_socket->get_s()) {
+
+void SocketActions::on_read_event(int fd, void *udata) {
+    auto *data = reinterpret_cast<ClientSocket *>(udata);
+    switch (data->get_s()) {
         case CONNECTION: {
             uint8_t connection_answer[2];
             uint8_t command_request[10] = {0x05, 0x01, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
             struct in_addr server_addr{};
 
-            if (client_socket->receive(connection_answer, sizeof(connection_answer)) == -1) {
+            if (data->receive(connection_answer, sizeof(connection_answer)) == -1) {
                 std::cerr << "Failed to read connection response: " << std::strerror(errno) << std::endl;
                 break;
             }
@@ -48,18 +49,18 @@ void SocksActions::on_read_event(int fd, void *udata) {
             memcpy(command_request + 4, &server_addr.s_addr, 4);
             memcpy(command_request + 8, &server_port, 2);
 
-            if (client_socket->send(command_request, sizeof(command_request)) == -1) {
+            if (data->send(command_request, sizeof(command_request)) == -1) {
                 std::cerr << "Failed to send command request: " << std::strerror(errno) << std::endl;
                 break;
             }
-            client_socket->set_s(COMMAND);
-            k_queue.add_read_event(fd, client_socket);
+            data->set_s(COMMAND);
+            k_queue.add_read_event(fd, data);
             break;
         }
         case COMMAND: {
             uint8_t command_answer[10];
 
-            if (client_socket->receive(command_answer, sizeof(command_answer)) == -1) {
+            if (data->receive(command_answer, sizeof(command_answer)) == -1) {
                 std::cerr << "Failed to read command response: " << std::strerror(errno) << std::endl;
                 break;
             }
@@ -69,30 +70,25 @@ void SocksActions::on_read_event(int fd, void *udata) {
                 break;
             }
 
-            if (client_socket->send(test_string.c_str(), test_string.length()) == -1) {
+            if (data->send(test_string.c_str(), test_string.length()) == -1) {
                 std::cerr << "Failed to send test string: " << std::strerror(errno) << std::endl;
                 break;
             }
-            client_socket->set_s(END);
-            k_queue.add_read_event(fd, client_socket);
+            data->set_s(END);
+            k_queue.add_read_event(fd, data);
             break;
         }
         case END: {
             ++ping_count;
-            client_socket->discard_all();
-            if (client_socket->send(test_string.c_str(), test_string.length()) == -1) {
+            data->discard_all();
+            if (data->send(test_string.c_str(), test_string.length()) == -1) {
                 std::cerr << "Failed to send test string: " << std::strerror(errno) << std::endl;
             }
         }
     }
 }
 
-void SocksActions::on_write_event(int fd, void *udata) {
-    auto *client_socket = reinterpret_cast<ClientSocket *>(udata);
-
-
-}
-
-unsigned long long SocksActions::get_ping_count() const {
+unsigned long long SocketActions::get_ping_count() const {
     return ping_count;
 }
+

@@ -17,6 +17,8 @@ public:
 
     bool add_read_event(int fd, void *data);
 
+    bool add_write_event(int fd, void *data);
+
     bool add_timer_event(uint16_t time);
 
     void start_loop(Actions *actions);

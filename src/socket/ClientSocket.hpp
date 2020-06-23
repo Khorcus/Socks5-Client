@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <string>
 #include "../utils.hpp"
+#include "../kqueue/KQueue.hpp"
 
 
 class ClientSocket {
@@ -37,11 +38,16 @@ public:
 
     void set_s(status s);
 
+    void set_k_queue(const KQueue &k_queue);
+
     void swap(ClientSocket &other);
 
 private:
     int sfd;
     status s;
+    std::string send_data;
+    std::string read_data;
+    KQueue k_queue;
 };
 
 
