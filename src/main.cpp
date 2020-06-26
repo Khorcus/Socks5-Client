@@ -33,9 +33,7 @@ int main(int argc, char *argv[]) {
     uint16_t sessions_per_thread = session_count / thread_count;
     uint16_t unallocated_sessions = session_count % thread_count;
 
-    if (unallocated_sessions > 0) {
-        sessions_per_thread++;
-    }
+    sessions_per_thread++;
 
     for (uint16_t i = 0; i < thread_count; ++i) {
         if (unallocated_sessions == 0) {

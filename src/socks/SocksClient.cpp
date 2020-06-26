@@ -39,24 +39,28 @@ void SocksClient::start_test(uint16_t session_count, const std::string &test_str
     }
     k_queue.add_timer_event(time);
     for (int i = 0; i < session_count; i++) {
+        socket_pool[i].set_k_queue(k_queue);
+        //TODO: Разобраться, почему при отсутствии const в определении start_test программа не компилируется
+        socket_pool[i].set_test_data(server_host, server_port, const_cast<std::string &>(test_string));
         if (!socket_pool[i].connect(socks_host, socks_port)) {
             return;
         }
         if (!socket_pool[i].make_non_blocking()) {
             return;
         }
-        if (!socket_pool[i].send("\05\01\00", 3)) {
-            return;
-        }
-        socket_pool[i].set_s(CONNECTION);
-        k_queue.add_read_event(socket_pool[i].get_fd(), &socket_pool[i]);
+        socket_pool[i].send_all("\05\01\00", 3, on_first_send);
     }
 
-    SocksActions actions = SocksActions(server_host, server_port, test_string, k_queue);
+    SocksActions actions = SocksActions();
     k_queue.start_loop(&actions);
     ping_count = actions.get_ping_count();
 }
 
 unsigned long long SocksClient::get_ping_count() {
     return ping_count;
+}
+
+void SocksClient::on_first_send(ClientSocket &client_socket) {
+    client_socket.set_s(CONNECTION);
+    client_socket.get_k_queue().add_read_event(client_socket.get_fd(), &client_socket);
 }

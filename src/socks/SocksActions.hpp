@@ -7,10 +7,11 @@
 #include "../kqueue/Actions.hpp"
 #include "../utils.hpp"
 #include "../kqueue/KQueue.hpp"
+#include "../socket/ClientSocket.hpp"
 
 class SocksActions : public Actions {
 public:
-    SocksActions(const char *server_host, uint16_t server_port, std::string test_string, KQueue k_queue);
+    explicit SocksActions();
 
     void on_read_event(int fd, void *udata) override;
 
@@ -18,12 +19,16 @@ public:
 
     unsigned long long get_ping_count() const;
 
+    static void on_connection_receive(std::vector<uint8_t> &connection_answer, ClientSocket &client_socket);
+
+    static void on_connection_send(ClientSocket &client_socket);
+
+    static void on_command_receive(std::vector<uint8_t> &command_answer, ClientSocket &client_socket);
+
+    static void on_command_send(ClientSocket &client_socket);
+
 private:
     unsigned long long ping_count;
-    const char *server_host;
-    uint16_t server_port;
-    const std::string test_string;
-    KQueue k_queue;
 };
 
 

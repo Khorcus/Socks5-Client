@@ -9,6 +9,8 @@
 #define BUF_SIZE 1024
 #define EV_NUMBER 32
 
+//TODO: Все инициализировать
+
 ClientSocket::ClientSocket()
         : sfd(), s() {}
 
@@ -65,35 +67,60 @@ bool ClientSocket::make_non_blocking() {
 }
 
 int ClientSocket::send(const void *data, size_t size) {
-//    int sent_size = 0;
-//    const char *char_data = static_cast<const char *>(data);
-//    while (sent_size != size) {
-//        int current_sent_size = 0;
-//        if ((current_sent_size = ::send(sfd, char_data + sent_size, size - sent_size, 0)) == -1) {
-//            return -1;
-//        }
-//        sent_size += current_sent_size;
-//    }
-//    return sent_size;
-    const char *char_data = static_cast<const char *>(data);
-    if (send_data.empty()) {
-        int sent_size = 0;
-        if ((sent_size = ::send(sfd, char_data + sent_size, size - sent_size, 0)) == -1) {
-            return -1;
-        }
-        if (sent_size != size) {
-            send_data.append(char_data + sent_size);
-            k_queue.add_write_event(sfd, this);
-        }
-        return sent_size;
-    } else {
-        send_data.append(char_data);
-        return 0;
-    }
+    return ::send(sfd, data, size, 0);
 }
 
 int ClientSocket::receive(void *data, size_t size) {
     return recv(sfd, data, size, 0);
+}
+
+bool ClientSocket::send_all(const void *data, size_t size, const std::function<void(ClientSocket &)> &f) {
+    int sent_size = 0;
+    send_data.reserve(size);
+    if ((sent_size = send(data, size)) == -1) {
+        if (f) {
+            //TODO: Прокинуть ошибку
+            f(*this);
+        } else {
+            return false;
+        }
+    }
+    if (sent_size != size) {
+        const auto *uint_data = static_cast<const uint8_t *>(data);
+        send_data.insert(send_data.end(), uint_data + sent_size, uint_data + size);
+        k_queue.add_write_event(sfd, this);
+    } else {
+        if (f) {
+            f(*this);
+        } else {
+            return true;
+        }
+    }
+    return true;
+}
+
+bool ClientSocket::receive_all(size_t size, const std::function<void(std::vector<uint8_t> &, ClientSocket &)> &f) {
+    int receive_sizea = 0;
+    receive_data.reserve(size);
+    if ((receive_sizea = receive(receive_data.data(), size)) == -1) {
+        if (f) {
+            //TODO: Прокинуть ошибку
+            f(receive_data, *this);
+        } else {
+            return false;
+        }
+    }
+    if (receive_sizea != size) {
+        this->receive_size = size;
+        k_queue.add_read_event(sfd, this);
+    } else {
+        if (f) {
+            f(receive_data, *this);
+        } else {
+            return false;
+        }
+    }
+    return true;
 }
 
 void ClientSocket::discard_all() {
@@ -108,6 +135,28 @@ int ClientSocket::get_fd() const {
 
 status ClientSocket::get_s() const {
     return s;
+}
+
+const char *ClientSocket::get_server_host() const {
+    return server_host;
+}
+
+uint16_t ClientSocket::get_server_port() const {
+    return server_port;
+}
+
+std::string ClientSocket::get_test_string() const {
+    return test_string;
+}
+
+KQueue ClientSocket::get_k_queue() const {
+    return k_queue;
+}
+
+void ClientSocket::set_test_data(const char *server_host, uint16_t server_port, std::string &test_string) {
+    this->server_host = server_host;
+    this->server_port = server_port;
+    this->test_string = test_string;
 }
 
 void ClientSocket::set_s(status s) {

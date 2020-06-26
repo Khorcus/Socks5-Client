@@ -30,11 +30,25 @@ public:
 
     int receive(void *data, size_t size);
 
+    bool send_all(const void *data, size_t size, const std::function<void(ClientSocket &)> &f);
+
+    bool receive_all(size_t size, const std::function<void(std::vector<uint8_t> &, ClientSocket &)> &f);
+
     void discard_all();
 
     int get_fd() const;
 
     status get_s() const;
+
+    KQueue get_k_queue() const;
+
+    const char *get_server_host() const;
+
+    uint16_t get_server_port() const;
+
+    std::string get_test_string() const;
+
+    void set_test_data(const char *server_host, uint16_t server_port, std::string &test_string);
 
     void set_s(status s);
 
@@ -42,12 +56,21 @@ public:
 
     void swap(ClientSocket &other);
 
+    //TODO: Сделать приватными
+    std::vector<uint8_t> send_data;
+    std::function<void()> send_f;
+    std::vector<uint8_t> receive_data;
+    size_t receive_size;
+    std::function<void(std::vector<uint8_t>)> receive_f;
+
 private:
     int sfd;
     status s;
-    std::string send_data;
-    std::string read_data;
     KQueue k_queue;
+
+    const char *server_host;
+    uint16_t server_port;
+    std::string test_string;
 };
 
 

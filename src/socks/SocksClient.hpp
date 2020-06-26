@@ -19,6 +19,8 @@ public:
 
     unsigned long long get_ping_count();
 
+    static void on_first_send(ClientSocket &client_socket);
+
 private:
     const char *socks_host;
     uint16_t socks_port;
