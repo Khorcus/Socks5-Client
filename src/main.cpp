@@ -42,8 +42,7 @@ int main(int argc, char *argv[]) {
             sessions_per_thread--;
         }
         client_pool[i].init(socks_host, socks_port, server_host, server_port);
-        std::thread thread(&SocksClient::start_test, &client_pool[i], sessions_per_thread, test_string, time);
-        thread_pool.push_back(std::move(thread));
+        thread_pool.emplace_back(std::thread(&SocksClient::start_test, &client_pool[i], sessions_per_thread, test_string, time));
     }
     for (uint16_t i = 0; i < thread_count; ++i) {
         thread_pool[i].join();

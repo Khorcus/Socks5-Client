@@ -44,7 +44,6 @@ void KQueue::start_loop(Actions *actions) {
                 if (ev_list[i].flags & EV_EOF) {
                     std::cerr << "ClientSocket closed by server" << std::endl;
                     close(ev_list[i].ident);
-                    return;
                 } else if (ev_list[i].flags & EV_ERROR) {
                     std::cerr << "EV_ERROR: " << strerror(ev_list[i].data) << std::endl;
                     return;
