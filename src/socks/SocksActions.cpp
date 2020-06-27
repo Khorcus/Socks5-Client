@@ -21,7 +21,7 @@ void SocksActions::on_read_event(int fd, void *udata) {
             s->set_receive_size(0);
             if (s->get_receive_f()) {
                 //TODO: Прокинуть ошибку
-                s->get_receive_f()(s->get_receive_data());
+                s->get_receive_f()(s->get_receive_data(), *s);
             } else {
                 return;
             }
@@ -30,7 +30,7 @@ void SocksActions::on_read_event(int fd, void *udata) {
             //TODO: remove_read_event (пока не надо)
             s->get_receive_data().clear();
             s->set_receive_size(0);
-            s->get_receive_f()(s->get_receive_data());
+            s->get_receive_f()(s->get_receive_data(), *s);
         }
     }
     switch (s->get_s()) {

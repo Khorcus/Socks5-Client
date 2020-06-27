@@ -90,6 +90,7 @@ bool ClientSocket::send_all(const void *data, size_t size, const std::function<v
     if (sent_size != size) {
         const auto *uint_data = static_cast<const uint8_t *>(data);
         send_data.insert(send_data.end(), uint_data + sent_size, uint_data + size);
+        send_f = f;
         k_queue.add_write_event(sfd, this);
     } else {
         if (f) {
@@ -115,6 +116,7 @@ bool ClientSocket::receive_all(size_t size, const std::function<void(std::vector
     if (receive_sizea != size) {
         this->receive_size = size;
         k_queue.add_read_event(sfd, this);
+        receive_f = f;
     } else {
         if (f) {
             f(receive_data, *this);
@@ -155,15 +157,15 @@ KQueue ClientSocket::get_k_queue() const {
     return k_queue;
 }
 
-std::vector<uint8_t> ClientSocket::get_send_data() const {
+std::vector<uint8_t> &ClientSocket::get_send_data() {
     return send_data;
 }
 
-std::function<void()> ClientSocket::get_send_f() const {
+std::function<void(ClientSocket &)> ClientSocket::get_send_f() const {
     return send_f;
 }
 
-std::vector<uint8_t> ClientSocket::get_receive_data() const {
+std::vector<uint8_t> &ClientSocket::get_receive_data() {
     return receive_data;
 }
 
@@ -171,7 +173,7 @@ size_t ClientSocket::get_receive_size() const {
     return receive_size;
 }
 
-std::function<void(std::vector<uint8_t>)> ClientSocket::get_receive_f() const {
+std::function<void(std::vector<uint8_t> &, ClientSocket &)> ClientSocket::get_receive_f() const {
     return receive_f;
 }
 
