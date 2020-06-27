@@ -5,7 +5,16 @@
 #include <vector>
 #include "socks/SocksClient.hpp"
 
-#define BUF_SIZE 1024
+#define BASIC_STRING_LENGTH 72
+
+std::string create_test_string(size_t data_count) {
+    size_t content_length = data_count - BASIC_STRING_LENGTH;
+    content_length -= std::to_string(content_length).length();
+    std::string test_string = "GET / HTTP/1.1\nHost: localhost\nConnection: Keep-Alive\nContent-Length: \n\n";
+    return "GET / HTTP/1.1\nHost: localhost\nConnection: Keep-Alive\nContent-Length: " +
+           std::to_string(content_length) +
+           "\n\n" + std::string(content_length, 'a');
+}
 
 int main(int argc, char *argv[]) {
     if (argc != 9) {
@@ -21,7 +30,7 @@ int main(int argc, char *argv[]) {
     char *server_host = argv[3];
     uint16_t server_port = htons(std::atoi(argv[4]));
     uint16_t data_count = std::atoi(argv[5]);
-    std::string test_string = std::string(data_count, 'a');
+    std::string test_string = create_test_string(data_count);
     uint16_t session_count = std::atoi(argv[6]);
     uint16_t time = std::atoi(argv[7]) * 1000;
     uint16_t thread_count = std::atoi(argv[8]);
@@ -40,7 +49,8 @@ int main(int argc, char *argv[]) {
             sessions_per_thread--;
         }
         client_pool[i].init(socks_host, socks_port, server_host, server_port);
-        thread_pool.emplace_back(std::thread(&SocksClient::start_test, &client_pool[i], sessions_per_thread, test_string, time));
+        thread_pool.emplace_back(
+                std::thread(&SocksClient::start_test, &client_pool[i], sessions_per_thread, test_string, time));
     }
     for (uint16_t i = 0; i < thread_count; ++i) {
         thread_pool[i].join();

@@ -11,6 +11,11 @@ SocksActions::SocksActions() :
 
 void SocksActions::on_read_event(int fd, void *udata) {
     auto *s = reinterpret_cast<ClientSocket *>(udata);
+    if (s->get_s() == DISCARD) {
+        s->discard_all(on_discard_all);
+        return;
+    }
+
     if (!s->get_receive_data().empty()) {
         if ((s->receive(s->get_receive_data().data() + s->get_receive_data().size(),
                         s->get_receive_size() - s->get_receive_data().size())) == -1) {
@@ -46,7 +51,12 @@ void SocksActions::on_read_event(int fd, void *udata) {
         }
         case END: {
             ++ping_count;
+            s->set_s(DISCARD);
+            s->get_k_queue().add_read_event(s->get_fd(), &s);
             s->discard_all(on_discard_all);
+        }
+        case DISCARD: {
+
         }
     }
 }
@@ -131,6 +141,8 @@ void SocksActions::on_command_send(ClientSocket &s) {
 }
 
 void SocksActions::on_discard_all(std::vector<uint8_t> &command_answer, ClientSocket &s) {
+    s.set_s(END);
+    s.get_k_queue().add_read_event(s.get_fd(), &s);
     if (!s.send_all(s.get_test_string().c_str(), s.get_test_string().length(), nullptr)) {
         std::cerr << "Failed to send test string: " << std::strerror(errno) << std::endl;
     }

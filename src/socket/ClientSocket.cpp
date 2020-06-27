@@ -77,7 +77,7 @@ int ClientSocket::receive(void *data, size_t size) {
 }
 
 bool ClientSocket::send_all(const void *data, size_t size, const std::function<void(ClientSocket &)> &f) {
-    int sent_size = 0;
+    size_t sent_size = 0;
     send_data.reserve(size);
     if ((sent_size = send(data, size)) == -1) {
         if (f) {
@@ -103,9 +103,10 @@ bool ClientSocket::send_all(const void *data, size_t size, const std::function<v
 }
 
 bool ClientSocket::receive_all(size_t size, const std::function<void(std::vector<uint8_t> &, ClientSocket &)> &f) {
-    int receive_sizea = 0;
+    size_t receive_size = 0;
     receive_data.reserve(size);
-    if ((receive_sizea = receive(receive_data.data(), size)) == -1) {
+    uint8_t data[size];
+    if ((receive_size = receive(data, size)) == -1) {
         if (f) {
             //TODO: Прокинуть ошибку
             f(receive_data, *this);
@@ -113,7 +114,8 @@ bool ClientSocket::receive_all(size_t size, const std::function<void(std::vector
             return false;
         }
     }
-    if (receive_sizea != size) {
+    receive_data.insert(receive_data.end(), data, data + receive_size);
+    if (receive_size != size) {
         this->receive_size = size;
         k_queue.add_read_event(sfd, this);
         receive_f = f;
@@ -121,14 +123,34 @@ bool ClientSocket::receive_all(size_t size, const std::function<void(std::vector
         if (f) {
             f(receive_data, *this);
         } else {
-            return false;
+            return true;
         }
     }
     return true;
 }
 
-void ClientSocket::discard_all(const std::function<void(std::vector<uint8_t> &, ClientSocket &)> &f) {
-    receive_all(test_string.length(), f);
+bool ClientSocket::discard_all(const std::function<void(std::vector<uint8_t> &, ClientSocket &)> &f) {
+    size_t receive_size = 0;
+    uint8_t data[BUF_SIZE];
+    if ((receive_size = receive(data, BUF_SIZE)) == -1) {
+        if (f) {
+            //TODO: Прокинуть ошибку
+            f(receive_data, *this);
+        } else {
+            return false;
+        }
+    }
+    if (receive_size == BUF_SIZE) {
+        k_queue.add_read_event(sfd, this);
+        receive_f = f;
+    } else {
+        if (f) {
+            f(receive_data, *this);
+        } else {
+            return true;
+        }
+    }
+    return true;
 }
 
 int ClientSocket::get_fd() const {

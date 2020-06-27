@@ -4,7 +4,8 @@
 enum status {
     CONNECTION = 1,
     COMMAND = 2,
-    END = 3
+    END = 3,
+    DISCARD = 4
 };
 
 #endif //SOCKS5_CLIENT_UTILS_HPP
