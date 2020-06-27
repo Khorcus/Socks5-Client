@@ -5,8 +5,6 @@
 #include <utility>
 #include <arpa/inet.h>
 
-#define BUF_SIZE 1024
-
 SocksActions::SocksActions() :
         ping_count(0) {
 }
@@ -48,10 +46,7 @@ void SocksActions::on_read_event(int fd, void *udata) {
         }
         case END: {
             ++ping_count;
-            s->discard_all();
-            if (!s->send_all(s->get_test_string().c_str(), s->get_test_string().length(), nullptr)) {
-                std::cerr << "Failed to send test string: " << std::strerror(errno) << std::endl;
-            }
+            s->discard_all(on_discard_all);
         }
     }
 }
@@ -133,4 +128,10 @@ void SocksActions::on_command_receive(std::vector<uint8_t> &command_answer, Clie
 void SocksActions::on_command_send(ClientSocket &s) {
     s.set_s(END);
     s.get_k_queue().add_read_event(s.get_fd(), &s);
+}
+
+void SocksActions::on_discard_all(std::vector<uint8_t> &command_answer, ClientSocket &s) {
+    if (!s.send_all(s.get_test_string().c_str(), s.get_test_string().length(), nullptr)) {
+        std::cerr << "Failed to send test string: " << std::strerror(errno) << std::endl;
+    }
 }

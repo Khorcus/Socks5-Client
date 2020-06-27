@@ -34,7 +34,7 @@ public:
 
     bool receive_all(size_t size, const std::function<void(std::vector<uint8_t> &, ClientSocket &)> &f);
 
-    void discard_all();
+    void discard_all(const std::function<void(std::vector<uint8_t> &, ClientSocket &)> &f);
 
     int get_fd() const;
 

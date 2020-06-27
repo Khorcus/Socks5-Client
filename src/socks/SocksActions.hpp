@@ -27,6 +27,8 @@ public:
 
     static void on_command_send(ClientSocket &s);
 
+    static void on_discard_all(std::vector<uint8_t> &command_answer, ClientSocket &s);
+
 private:
     unsigned long long ping_count;
 };

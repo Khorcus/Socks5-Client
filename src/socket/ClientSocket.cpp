@@ -127,10 +127,8 @@ bool ClientSocket::receive_all(size_t size, const std::function<void(std::vector
     return true;
 }
 
-void ClientSocket::discard_all() {
-    char buf[BUF_SIZE];
-    while (recv(sfd, buf, sizeof(buf), 0) > 0) {
-    }
+void ClientSocket::discard_all(const std::function<void(std::vector<uint8_t> &, ClientSocket &)> &f) {
+    receive_all(test_string.length(), f);
 }
 
 int ClientSocket::get_fd() const {
