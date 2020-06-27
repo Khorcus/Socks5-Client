@@ -9,17 +9,19 @@
 #define BUF_SIZE 1024
 #define EV_NUMBER 32
 
-//TODO: Все инициализировать
 
 ClientSocket::ClientSocket()
-        : sfd(), s() {}
+        : sfd(), s(), server_host(), server_port(), test_string(),
+          send_data(), send_f(), receive_data(), receive_size(), receive_f() {}
 
 ClientSocket::~ClientSocket() {
     shutdown(sfd, SHUT_RDWR);
     close(sfd);
 }
 
-ClientSocket::ClientSocket(ClientSocket &&src) noexcept : sfd(-1), s() {
+ClientSocket::ClientSocket(ClientSocket &&src) noexcept
+        : sfd(-1), s(), server_host(), server_port(), test_string(),
+          send_data(), send_f(), receive_data(), receive_size(), receive_f() {
     src.swap(*this);
 }
 
@@ -153,6 +155,26 @@ KQueue ClientSocket::get_k_queue() const {
     return k_queue;
 }
 
+std::vector<uint8_t> ClientSocket::get_send_data() const {
+    return send_data;
+}
+
+std::function<void()> ClientSocket::get_send_f() const {
+    return send_f;
+}
+
+std::vector<uint8_t> ClientSocket::get_receive_data() const {
+    return receive_data;
+}
+
+size_t ClientSocket::get_receive_size() const {
+    return receive_size;
+}
+
+std::function<void(std::vector<uint8_t>)> ClientSocket::get_receive_f() const {
+    return receive_f;
+}
+
 void ClientSocket::set_test_data(const char *server_host, uint16_t server_port, std::string &test_string) {
     this->server_host = server_host;
     this->server_port = server_port;
@@ -167,6 +189,9 @@ void ClientSocket::set_k_queue(const KQueue &k_queue) {
     this->k_queue = k_queue;
 }
 
+void ClientSocket::set_receive_size(size_t receive_size) {
+    this->receive_size = receive_size;
+}
 
 void ClientSocket::swap(ClientSocket &other) {
     std::swap(sfd, other.sfd);

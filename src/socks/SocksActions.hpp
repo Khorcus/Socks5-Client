@@ -19,13 +19,13 @@ public:
 
     unsigned long long get_ping_count() const;
 
-    static void on_connection_receive(std::vector<uint8_t> &connection_answer, ClientSocket &client_socket);
+    static void on_connection_receive(std::vector<uint8_t> &connection_answer, ClientSocket &s);
 
-    static void on_connection_send(ClientSocket &client_socket);
+    static void on_connection_send(ClientSocket &s);
 
-    static void on_command_receive(std::vector<uint8_t> &command_answer, ClientSocket &client_socket);
+    static void on_command_receive(std::vector<uint8_t> &command_answer, ClientSocket &s);
 
-    static void on_command_send(ClientSocket &client_socket);
+    static void on_command_send(ClientSocket &s);
 
 private:
     unsigned long long ping_count;

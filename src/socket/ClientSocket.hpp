@@ -48,20 +48,25 @@ public:
 
     std::string get_test_string() const;
 
+    std::vector<uint8_t> get_send_data() const;
+
+    std::function<void()> get_send_f() const;
+
+    std::vector<uint8_t> get_receive_data() const;
+
+    size_t get_receive_size() const;
+
+    std::function<void(std::vector<uint8_t>)> get_receive_f() const;
+
     void set_test_data(const char *server_host, uint16_t server_port, std::string &test_string);
 
     void set_s(status s);
 
     void set_k_queue(const KQueue &k_queue);
 
-    void swap(ClientSocket &other);
+    void set_receive_size(size_t receive_size);
 
-    //TODO: Сделать приватными
-    std::vector<uint8_t> send_data;
-    std::function<void()> send_f;
-    std::vector<uint8_t> receive_data;
-    size_t receive_size;
-    std::function<void(std::vector<uint8_t>)> receive_f;
+    void swap(ClientSocket &other);
 
 private:
     int sfd;
@@ -71,6 +76,11 @@ private:
     const char *server_host;
     uint16_t server_port;
     std::string test_string;
+    std::vector<uint8_t> send_data;
+    std::function<void()> send_f;
+    std::vector<uint8_t> receive_data;
+    size_t receive_size;
+    std::function<void(std::vector<uint8_t>)> receive_f;
 };
 
 
