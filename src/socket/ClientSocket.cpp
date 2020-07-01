@@ -81,7 +81,7 @@ bool ClientSocket::send_all(const void *data, size_t size, const std::function<v
     send_data.reserve(size);
     if ((sent_size = send(data, size)) == -1) {
         if (f) {
-            //TODO: Прокинуть ошибку
+            //TODO: Throw an error into a function
             f(*this);
         } else {
             return false;
@@ -108,7 +108,7 @@ bool ClientSocket::receive_all(size_t size, const std::function<void(std::vector
     uint8_t data[size];
     if ((receive_size = receive(data, size)) == -1) {
         if (f) {
-            //TODO: Прокинуть ошибку
+            //TODO: Throw an error into a function
             f(receive_data, *this);
         } else {
             return false;
@@ -134,7 +134,7 @@ bool ClientSocket::discard_all(const std::function<void(std::vector<uint8_t> &, 
     uint8_t data[BUF_SIZE];
     if ((receive_size = receive(data, BUF_SIZE)) == -1) {
         if (f) {
-            //TODO: Прокинуть ошибку
+            //TODO: Throw an error into a function
             f(receive_data, *this);
         } else {
             return false;

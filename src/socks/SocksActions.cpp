@@ -19,18 +19,18 @@ void SocksActions::on_read_event(int fd, void *udata) {
     if (!s->get_receive_data().empty()) {
         if ((s->receive(s->get_receive_data().data() + s->get_receive_data().size(),
                         s->get_receive_size() - s->get_receive_data().size())) == -1) {
-            //TODO: remove_read_event (пока не надо)
+            //TODO: remove_read_event (maybe not)
             s->get_receive_data().clear();
             s->set_receive_size(0);
             if (s->get_receive_f()) {
-                //TODO: Прокинуть ошибку
+                //TODO: Throw an error into a function
                 s->get_receive_f()(s->get_receive_data(), *s);
             } else {
                 return;
             }
         }
         if (s->get_receive_data().size() == s->get_receive_size() && s->get_receive_f()) {
-            //TODO: remove_read_event (пока не надо)
+            //TODO: remove_read_event (maybe not)
             s->get_receive_data().clear();
             s->set_receive_size(0);
             s->get_receive_f()(s->get_receive_data(), *s);
@@ -69,7 +69,7 @@ void SocksActions::on_write_event(int fd, void *udata) {
             //TODO: remove_write_event
             s->get_send_data().clear();
             if (s->get_send_f()) {
-                //TODO: Прокинуть ошибку
+                //TODO: Throw an error into a function
                 s->get_send_f();
             } else {
                 return;

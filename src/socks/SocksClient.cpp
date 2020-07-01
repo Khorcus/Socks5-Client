@@ -40,7 +40,7 @@ void SocksClient::start_test(uint16_t session_count, const std::string &test_str
     k_queue.add_timer_event(time);
     for (int i = 0; i < session_count; i++) {
         socket_pool[i].set_k_queue(k_queue);
-        //TODO: Разобраться, почему при отсутствии const в определении start_test программа не компилируется
+        //TODO: Understand why in the absence of const in the start_test definition, the program does not compile
         socket_pool[i].set_test_data(server_host, server_port, const_cast<std::string &>(test_string));
         if (!socket_pool[i].connect(socks_host, socks_port)) {
             return;
