@@ -15,3 +15,55 @@ The number of processed requests was calculated as follows:
 3. After the timer was triggered, the total number of processed requests on each thread was summed.
 
 ![Results](/images/results.png)
+
+## Usage
+
+For testing it's needed locally deployed nginx with echo-nginx-module.
+
+### Steps to configure nginx:
+
+1. Download sources:
+```
+git clone https://github.com/openresty/echo-nginx-module
+wget 'http://nginx.org/download/nginx-1.9.3.tar.gz'
+```
+2. Unzip and change current directory:
+```
+tar -xzvf nginx-1.9.3.tar.gz
+cd nginx-1.9.3
+```
+3. Configure:
+```
+./configure —prefix=/path/to/nginx-1.9.3 \
+—with-stream \
+—add-module=/path/to/echo-nginx-module
+```
+4. Make:
+```
+make
+```
+5. Edit nginx.conf:
+```
+events {
+    use kqueue;
+    worker_connections 2048;
+}
+
+http {
+    server {
+
+        listen 8081;
+        keepalive_timeout 20s;
+        keepalive_requests 1000000;
+
+        location / {
+            echo_read_request_body;
+            echo_request_body;
+        }
+    }
+}
+```
+6. Start nginx:
+```
+./objs/nginx
+```
